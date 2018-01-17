@@ -34,6 +34,7 @@ import org.apache.flume.sink.AbstractSink;
 import org.apache.flume.source.AbstractSource;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Map;
 
 public class TestAbstractConfigurationProvider {
@@ -220,6 +221,11 @@ public class TestAbstractConfigurationProvider {
     @Override
     protected FlumeConfiguration getFlumeConfiguration() {
       return new FlumeConfiguration(properties);
+    }
+
+    @Override
+    public void refreshConfiguration() throws IOException {
+
     }
   }
 

@@ -17,12 +17,18 @@
  */
 package org.apache.flume.node;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.flume.CounterGroup;
+import org.apache.flume.conf.FlumeConfiguration;
 import org.apache.flume.lifecycle.LifecycleAware;
 import org.apache.flume.lifecycle.LifecycleState;
 import org.slf4j.Logger;
@@ -38,8 +44,8 @@ public class PollingPropertiesFileConfigurationProvider
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(PollingPropertiesFileConfigurationProvider.class);
+  private static final String DEFAULT_PROPERTIES_IMPLEMENTATION = "java.util.Properties";
 
-  private final EventBus eventBus;
   private final File file;
   private final int interval;
   private final CounterGroup counterGroup;
@@ -49,8 +55,7 @@ public class PollingPropertiesFileConfigurationProvider
 
   public PollingPropertiesFileConfigurationProvider(String agentName,
       File file, EventBus eventBus, int interval) {
-    super(agentName, file);
-    this.eventBus = eventBus;
+    super(agentName,file,eventBus);
     this.file = file;
     this.interval = interval;
     counterGroup = new CounterGroup();
@@ -59,6 +64,12 @@ public class PollingPropertiesFileConfigurationProvider
 
   @Override
   public void start() {
+    if(interval == -1){
+        LOGGER.info("Once configuration");
+        eventBus.post(getConfiguration());
+        lifecycleState = LifecycleState.STOP;
+        return;
+    }
     LOGGER.info("Configuration provider starting");
 
     Preconditions.checkState(file != null,
@@ -82,7 +93,9 @@ public class PollingPropertiesFileConfigurationProvider
   @Override
   public void stop() {
     LOGGER.info("Configuration provider stopping");
+    if(interval == -1){
 
+    }
     executorService.shutdown();
     try {
       while (!executorService.awaitTermination(500, TimeUnit.MILLISECONDS)) {
@@ -107,6 +120,7 @@ public class PollingPropertiesFileConfigurationProvider
     return "{ file:" + file + " counterGroup:" + counterGroup + "  provider:"
         + getClass().getCanonicalName() + " agentName:" + getAgentName() + " }";
   }
+
 
   public class FileWatcherRunnable implements Runnable {
 
@@ -138,7 +152,7 @@ public class PollingPropertiesFileConfigurationProvider
         lastChange = lastModified;
 
         try {
-          eventBus.post(getConfiguration());
+          refreshConfiguration();
         } catch (Exception e) {
           LOGGER.error("Failed to load configuration data. Exception follows.",
               e);

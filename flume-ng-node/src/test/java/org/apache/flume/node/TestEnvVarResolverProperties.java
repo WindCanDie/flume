@@ -17,6 +17,7 @@
  */
 package org.apache.flume.node;
 
+import com.google.common.eventbus.EventBus;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,7 +37,7 @@ public class TestEnvVarResolverProperties {
 
   @Before
   public void setUp() throws Exception {
-    provider = new PropertiesFileConfigurationProvider("a1", TESTFILE);
+    provider = new PropertiesFileConfigurationProvider("a1", TESTFILE,new EventBus());
   }
 
   @Test

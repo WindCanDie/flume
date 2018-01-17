@@ -93,7 +93,7 @@ public class PollingZooKeeperConfigurationProvider extends
     lifecycleState = LifecycleState.START;
   }
 
-  private void refreshConfiguration() throws IOException {
+  public void refreshConfiguration() throws IOException {
     LOGGER.info("Refreshing configuration from ZooKeeper");
     byte[] data = null;
     ChildData childData = agentNodeCache.getCurrentData();

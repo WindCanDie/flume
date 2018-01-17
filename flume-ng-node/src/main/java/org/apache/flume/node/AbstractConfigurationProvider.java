@@ -17,6 +17,7 @@
  */
 package org.apache.flume.node;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -87,6 +88,9 @@ public abstract class AbstractConfigurationProvider implements ConfigurationProv
   }
 
   protected abstract FlumeConfiguration getFlumeConfiguration();
+
+  public abstract void refreshConfiguration() throws IOException;
+
 
   public MaterializedConfiguration getConfiguration() {
     MaterializedConfiguration conf = new SimpleMaterializedConfiguration();

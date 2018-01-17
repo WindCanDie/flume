@@ -101,8 +101,8 @@ public class Application {
       for (Entry<String, SourceRunner> entry :
            this.materializedConfiguration.getSourceRunners().entrySet()) {
         try {
-          logger.info("Stopping Source " + entry.getKey());
-          supervisor.unsupervise(entry.getValue());
+            supervisor.unsupervise(entry.getValue());
+            logger.info("Stopping Source " + entry.getKey());
         } catch (Exception e) {
           logger.error("Error while stopping {}", entry.getValue(), e);
         }
@@ -279,22 +279,23 @@ public class Application {
         String zkConnectionStr = commandLine.getOptionValue('z');
         String baseZkPath = commandLine.getOptionValue('p');
 
+        EventBus eventBus = new EventBus(agentName + "-event-bus");
         if (reload) {
-          EventBus eventBus = new EventBus(agentName + "-event-bus");
           List<LifecycleAware> components = Lists.newArrayList();
           PollingZooKeeperConfigurationProvider zookeeperConfigurationProvider =
               new PollingZooKeeperConfigurationProvider(
                   agentName, zkConnectionStr, baseZkPath, eventBus);
           components.add(zookeeperConfigurationProvider);
           application = new Application(components);
-          eventBus.register(application);
         } else {
           StaticZooKeeperConfigurationProvider zookeeperConfigurationProvider =
               new StaticZooKeeperConfigurationProvider(
-                  agentName, zkConnectionStr, baseZkPath);
+                  agentName, zkConnectionStr, baseZkPath,eventBus);
+
           application = new Application();
           application.handleConfigurationEvent(zookeeperConfigurationProvider.getConfiguration());
         }
+        eventBus.register(application);
       } else {
         File configurationFile = new File(commandLine.getOptionValue('f'));
 
@@ -318,21 +319,21 @@ public class Application {
           }
         }
         List<LifecycleAware> components = Lists.newArrayList();
-
+        EventBus eventBus = new EventBus(agentName + "-event-bus");
         if (reload) {
-          EventBus eventBus = new EventBus(agentName + "-event-bus");
           PollingPropertiesFileConfigurationProvider configurationProvider =
               new PollingPropertiesFileConfigurationProvider(
                   agentName, configurationFile, eventBus, 30);
           components.add(configurationProvider);
           application = new Application(components);
-          eventBus.register(application);
         } else {
           PropertiesFileConfigurationProvider configurationProvider =
-              new PropertiesFileConfigurationProvider(agentName, configurationFile);
+              new PropertiesFileConfigurationProvider(agentName, configurationFile,eventBus);
           application = new Application();
           application.handleConfigurationEvent(configurationProvider.getConfiguration());
+          eventBus.register(application);
         }
+          eventBus.register(application);
       }
       application.start();
 

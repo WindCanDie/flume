@@ -18,21 +18,25 @@
 
 package org.apache.flume.node;
 
+import com.google.common.eventbus.EventBus;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.flume.FlumeException;
 import org.apache.flume.conf.FlumeConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 public class StaticZooKeeperConfigurationProvider extends
     AbstractZooKeeperConfigurationProvider {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(StaticZooKeeperConfigurationProvider.class);
-
+  private final EventBus eventBus;
   public StaticZooKeeperConfigurationProvider(String agentName,
-      String zkConnString, String basePath) {
+      String zkConnString, String basePath, EventBus eventBus) {
     super(agentName, zkConnString, basePath);
+    this.eventBus = eventBus;
   }
 
   @Override
@@ -50,6 +54,11 @@ public class StaticZooKeeperConfigurationProvider extends
       LOGGER.error("Error getting configuration info from Zookeeper", e);
       throw new FlumeException(e);
     }
+  }
+
+  @Override
+  public void refreshConfiguration() throws IOException {
+        eventBus.post(getConfiguration());
   }
 
 }

@@ -18,6 +18,7 @@
  */
 package org.apache.flume.agent.embedded;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.apache.flume.annotations.InterfaceAudience;
@@ -43,6 +44,11 @@ class MemoryConfigurationProvider extends AbstractConfigurationProvider {
   @Override
   protected FlumeConfiguration getFlumeConfiguration() {
     return new FlumeConfiguration(properties);
+  }
+
+  @Override
+  public void refreshConfiguration() throws IOException {
+
   }
 
 }

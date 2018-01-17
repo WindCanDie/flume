@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Properties;
 
+import com.google.common.eventbus.EventBus;
 import org.apache.flume.conf.FlumeConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,10 +175,12 @@ public class PropertiesFileConfigurationProvider extends
   private static final String DEFAULT_PROPERTIES_IMPLEMENTATION = "java.util.Properties";
 
   private final File file;
+  protected final  EventBus eventBus;
 
-  public PropertiesFileConfigurationProvider(String agentName, File file) {
+  public PropertiesFileConfigurationProvider(String agentName, File file,EventBus eventBus) {
     super(agentName);
     this.file = file;
+    this.eventBus = eventBus;
   }
 
   @Override
@@ -212,5 +215,10 @@ public class PropertiesFileConfigurationProvider extends
       }
     }
     return new FlumeConfiguration(new HashMap<String, String>());
+  }
+
+  @Override
+  public void refreshConfiguration() throws IOException {
+    eventBus.post(getConfiguration());
   }
 }

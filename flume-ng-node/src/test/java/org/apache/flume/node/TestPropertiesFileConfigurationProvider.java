@@ -19,6 +19,7 @@ package org.apache.flume.node;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.eventbus.EventBus;
 import junit.framework.Assert;
 import org.apache.flume.conf.FlumeConfiguration;
 import org.apache.flume.conf.FlumeConfiguration.AgentConfiguration;
@@ -47,7 +48,7 @@ public class TestPropertiesFileConfigurationProvider  {
 
   @Before
   public void setUp() throws Exception {
-    provider = new PropertiesFileConfigurationProvider("test", TESTFILE);
+    provider = new PropertiesFileConfigurationProvider("test", TESTFILE,new EventBus());
   }
 
   @After
