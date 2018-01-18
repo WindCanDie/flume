@@ -74,6 +74,7 @@ public abstract class AbstractConfigurationProvider implements ConfigurationProv
   private final SourceFactory sourceFactory;
   private final SinkFactory sinkFactory;
   private final ChannelFactory channelFactory;
+  private final ConfigurationHandler configurationMBean;
 
   private final Map<Class<? extends Channel>, Map<String, Channel>> channelCache;
 
@@ -83,7 +84,7 @@ public abstract class AbstractConfigurationProvider implements ConfigurationProv
     this.sourceFactory = new DefaultSourceFactory();
     this.sinkFactory = new DefaultSinkFactory();
     this.channelFactory = new DefaultChannelFactory();
-
+    this.configurationMBean = new ConfigurationHandler(agentName,this);
     channelCache = new HashMap<Class<? extends Channel>, Map<String, Channel>>();
   }
 
@@ -97,6 +98,7 @@ public abstract class AbstractConfigurationProvider implements ConfigurationProv
     FlumeConfiguration fconfig = getFlumeConfiguration();
     AgentConfiguration agentConf = fconfig.getConfigurationFor(getAgentName());
     if (agentConf != null) {
+      configurationMBean.setAgentConfiguration(agentConf);
       Map<String, ChannelComponent> channelComponentMap = Maps.newHashMap();
       Map<String, SourceRunner> sourceRunnerMap = Maps.newHashMap();
       Map<String, SinkRunner> sinkRunnerMap = Maps.newHashMap();

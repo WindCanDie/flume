@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -95,6 +96,7 @@ public class HTTPMetricsServer implements MonitorService {
   private class HTTPMetricsHandler extends AbstractHandler {
 
     Type mapType = new TypeToken<Map<String, Map<String, String>>>() {}.getType();
+    Type confType = new TypeToken< Map<String ,List< Map<String,Map<String,String>>>>>() {}.getType();
     Gson gson = new Gson();
 
     @Override
@@ -124,8 +126,18 @@ public class HTTPMetricsServer implements MonitorService {
       } else if (target.equalsIgnoreCase("/metrics")) {
         response.setContentType("application/json;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
-        Map<String, Map<String, String>> metricsMap = JMXPollUtil.getAllMBeans();
+        Map<String, Map<String, String>> metricsMap = JMXPollUtil.getAllMonitoreMBeans();
         String json = gson.toJson(metricsMap, mapType);
+        response.getWriter().write(json);
+        response.flushBuffer();
+        ((Request) request).setHandled(true);
+        return;
+      }else if (target.equalsIgnoreCase("/conf")) {
+        response.setContentType("application/json;charset=utf-8");
+        response.setStatus(HttpServletResponse.SC_OK);
+        Object configuration =  JMXPollUtil.invoke("org.apache.flume.node:conf=handler",
+                "configuration",null,null);
+        String json = gson.toJson(configuration,confType);
         response.getWriter().write(json);
         response.flushBuffer();
         ((Request) request).setHandled(true);

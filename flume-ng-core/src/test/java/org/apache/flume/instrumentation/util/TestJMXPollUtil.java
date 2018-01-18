@@ -73,7 +73,7 @@ public class TestJMXPollUtil {
     txn2.commit();
     txn2.close();
 
-    Map<String, Map<String, String>> mbeans = JMXPollUtil.getAllMBeans();
+    Map<String, Map<String, String>> mbeans = JMXPollUtil.getAllMonitoreMBeans();
     Assert.assertNotNull(mbeans);
     Map<String, String> memBean = mbeans.get("CHANNEL.memChannel");
     Assert.assertNotNull(memBean);

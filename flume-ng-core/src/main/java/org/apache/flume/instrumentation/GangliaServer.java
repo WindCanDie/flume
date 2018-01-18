@@ -330,7 +330,7 @@ public class GangliaServer implements MonitorService {
     public void run() {
       try {
         Map<String, Map<String, String>> metricsMap =
-                JMXPollUtil.getAllMBeans();
+                JMXPollUtil.getAllMonitoreMBeans();
         for (String component : metricsMap.keySet()) {
           Map<String, String> attributeMap = metricsMap.get(component);
           for (String attribute : attributeMap.keySet()) {

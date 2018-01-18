@@ -23,11 +23,8 @@ import com.google.common.collect.Maps;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
 import java.util.Set;
-import javax.management.Attribute;
-import javax.management.AttributeList;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanServer;
-import javax.management.ObjectInstance;
+import javax.management.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,11 +36,11 @@ public class JMXPollUtil {
   private static Logger LOG = LoggerFactory.getLogger(JMXPollUtil.class);
   private static MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
 
-  public static Map<String, Map<String, String>> getAllMBeans() {
+  public static Map<String, Map<String, String>> getAllMonitoreMBeans() {
     Map<String, Map<String, String>> mbeanMap = Maps.newHashMap();
     Set<ObjectInstance> queryMBeans = null;
     try {
-      queryMBeans = mbeanServer.queryMBeans(null, null);
+        queryMBeans = mbeanServer.queryMBeans(null, null);
     } catch (Exception ex) {
       LOG.error("Could not get Mbeans for monitoring", ex);
       Throwables.propagate(ex);
@@ -77,4 +74,42 @@ public class JMXPollUtil {
     }
     return mbeanMap;
   }
+
+  /**
+   * if beanName is registered return
+   * @param beanName
+   * @param object
+   */
+  public static void register(String beanName,Object object){
+    try {
+      ObjectName objName = new ObjectName(beanName);
+      if (mbeanServer.isRegistered(objName)){
+        return;
+      }
+      mbeanServer.registerMBean(object,objName);
+    } catch (Exception e) {
+      LOG.error("Failed to register monitored counter group for , name: " + beanName);
+    }
+  }
+
+  /**
+   *
+   * @param beanName
+   * @param operationName
+   * @param params
+   * @param signature
+   * @return if error return null
+   */
+  public static Object invoke(String beanName, String operationName,
+                       Object params[], String signature[]){
+    Object result = null;
+    try {
+      ObjectName objName = new ObjectName(beanName);
+      result = mbeanServer.invoke(objName,operationName,params,signature);
+    } catch (Exception e) {
+      LOG.error("Failed to invoke monitored counter group for , name: " + beanName+" operationName "+operationName);
+    }
+    return result;
+  }
+
 }
