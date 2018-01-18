@@ -104,7 +104,7 @@ public abstract class MonitoredCounterGroup {
   void register() {
     if (!registered) {
       try {
-        ObjectName objName = new ObjectName("org.apache.flume."
+        ObjectName objName = new ObjectName("org.apache.flume.monitore."
                 + type.name().toLowerCase(Locale.ENGLISH) + ":type=" + this.name);
 
         if (ManagementFactory.getPlatformMBeanServer().isRegistered(objName)) {

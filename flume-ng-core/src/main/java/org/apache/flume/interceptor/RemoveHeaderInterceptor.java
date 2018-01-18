@@ -51,7 +51,7 @@ import java.util.regex.Pattern;
  * - .matching (optional): All the headers which names match this regular expression are
  * removed
  */
-public class RemoveHeaderInterceptor implements Interceptor {
+public class RemoveHeaderInterceptor extends AbstractInterceptor{
   static final String WITH_NAME = "withName";
   static final String FROM_LIST = "fromList";
   static final String LIST_SEPARATOR = "fromListSeparator";
@@ -62,12 +62,14 @@ public class RemoveHeaderInterceptor implements Interceptor {
   private final String withName;
   private final Set<String> fromList;
   private final Pattern matchRegex;
+  private final String name;
 
   /**
    * Only {@link RemoveHeaderInterceptor.Builder} can build me
    */
   private RemoveHeaderInterceptor(final String withName, final String fromList,
-                                  final String listSeparator, final Pattern matchRegex) {
+                                  final String listSeparator, final Pattern matchRegex,String name) {
+    this.name = name;
     this.withName = withName;
     assert listSeparator != null : "Default value used otherwise";
     this.fromList = (fromList != null) ? new HashSet<>(Arrays.asList(fromList.split(
@@ -75,20 +77,9 @@ public class RemoveHeaderInterceptor implements Interceptor {
     this.matchRegex = matchRegex;
   }
 
-  /**
-   * @see org.apache.flume.interceptor.Interceptor#initialize()
-   */
   @Override
-  public void initialize() {
-    // Nothing to do
-  }
-
-  /**
-   * @see org.apache.flume.interceptor.Interceptor#close()
-   */
-  @Override
-  public void close() {
-    // Nothing to do
+  public String getName() {
+    return name;
   }
 
   /**
@@ -149,6 +140,7 @@ public class RemoveHeaderInterceptor implements Interceptor {
     String fromList;
     String listSeparator;
     Pattern matchRegex;
+    String name;
 
     /**
      * @see org.apache.flume.interceptor.Interceptor.Builder#build()
@@ -161,7 +153,7 @@ public class RemoveHeaderInterceptor implements Interceptor {
                 String.valueOf(matchRegex)});
       }
       return new RemoveHeaderInterceptor(withName, fromList, listSeparator,
-          matchRegex);
+          matchRegex,name);
     }
 
     /**
@@ -169,6 +161,7 @@ public class RemoveHeaderInterceptor implements Interceptor {
      */
     @Override
     public void configure(final Context context) {
+      name = context.getString(AbstractInterceptor.NAME_CONFG);
       withName = context.getString(WITH_NAME);
       fromList = context.getString(FROM_LIST);
       listSeparator = context.getString(LIST_SEPARATOR,

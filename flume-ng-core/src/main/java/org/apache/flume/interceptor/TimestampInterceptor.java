@@ -33,22 +33,23 @@ import static org.apache.flume.interceptor.TimestampInterceptor.Constants.*;
  * The name of the header can be changed through the configuration using the
  * config key "header".
  */
-public class TimestampInterceptor implements Interceptor {
+public class TimestampInterceptor extends AbstractInterceptor{
 
   private final boolean preserveExisting;
   private final String header;
-
+  private final String name;
   /**
    * Only {@link TimestampInterceptor.Builder} can build me
    */
-  private TimestampInterceptor(boolean preserveExisting, String header) {
+  private TimestampInterceptor(boolean preserveExisting, String header,String name) {
     this.preserveExisting = preserveExisting;
     this.header = header;
+    this.name = name;
   }
 
   @Override
-  public void initialize() {
-    // no-op
+  public String getName() {
+    return name;
   }
 
   /**
@@ -79,11 +80,6 @@ public class TimestampInterceptor implements Interceptor {
     return events;
   }
 
-  @Override
-  public void close() {
-    // no-op
-  }
-
   /**
    * Builder which builds new instances of the TimestampInterceptor.
    */
@@ -91,16 +87,18 @@ public class TimestampInterceptor implements Interceptor {
 
     private boolean preserveExisting = DEFAULT_PRESERVE;
     private String header = DEFAULT_HEADER_NAME;
+    private String name;
 
     @Override
     public Interceptor build() {
-      return new TimestampInterceptor(preserveExisting, header);
+      return new TimestampInterceptor(preserveExisting, header, name);
     }
 
     @Override
     public void configure(Context context) {
       preserveExisting = context.getBoolean(CONFIG_PRESERVE, DEFAULT_PRESERVE);
       header = context.getString(CONFIG_HEADER_NAME, DEFAULT_HEADER_NAME);
+      name = context.getString(AbstractInterceptor.NAME_CONFG);
     }
 
   }

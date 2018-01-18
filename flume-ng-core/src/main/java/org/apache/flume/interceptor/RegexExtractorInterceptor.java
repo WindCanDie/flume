@@ -97,7 +97,7 @@ import com.google.common.collect.Lists;
  * body: 1:2:3.4foobar5 headers: one=>1, two=>2
  * </pre>
  */
-public class RegexExtractorInterceptor implements Interceptor {
+public class RegexExtractorInterceptor extends AbstractInterceptor {
 
   static final String REGEX = "regex";
   static final String SERIALIZERS = "serializers";
@@ -107,22 +107,19 @@ public class RegexExtractorInterceptor implements Interceptor {
 
   private final Pattern regex;
   private final List<NameAndSerializer> serializers;
-
+  private final String name;
   private RegexExtractorInterceptor(Pattern regex,
-      List<NameAndSerializer> serializers) {
+      List<NameAndSerializer> serializers,String name) {
+    this.name = name;
     this.regex = regex;
     this.serializers = serializers;
   }
 
   @Override
-  public void initialize() {
-    // NO-OP...
+  public String getName() {
+    return name;
   }
 
-  @Override
-  public void close() {
-    // NO-OP...
-  }
 
   @Override
   public Event intercept(Event event) {
@@ -165,6 +162,7 @@ public class RegexExtractorInterceptor implements Interceptor {
 
   public static class Builder implements Interceptor.Builder {
 
+    private String name;
     private Pattern regex;
     private List<NameAndSerializer> serializerList;
     private final RegexExtractorInterceptorSerializer defaultSerializer =
@@ -172,6 +170,7 @@ public class RegexExtractorInterceptor implements Interceptor {
 
     @Override
     public void configure(Context context) {
+      name = context.getString(AbstractInterceptor.NAME_CONFG);
       String regexString = context.getString(REGEX);
       Preconditions.checkArgument(!StringUtils.isEmpty(regexString),
           "Must supply a valid regex string");
@@ -229,7 +228,7 @@ public class RegexExtractorInterceptor implements Interceptor {
           "Regex pattern was misconfigured");
       Preconditions.checkArgument(serializerList.size() > 0,
           "Must supply a valid group match id list");
-      return new RegexExtractorInterceptor(regex, serializerList);
+      return new RegexExtractorInterceptor(regex, serializerList,name);
     }
   }
 

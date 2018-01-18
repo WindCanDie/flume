@@ -50,7 +50,7 @@ public class JMXPollUtil {
     }
     for (ObjectInstance obj : queryMBeans) {
       try {
-        if (!obj.getObjectName().toString().startsWith("org.apache.flume")) {
+        if (!obj.getObjectName().toString().startsWith("org.apache.flume.monitore")) {
           continue;
         }
         MBeanAttributeInfo[] attrs = mbeanServer.getMBeanInfo(obj.getObjectName()).getAttributes();

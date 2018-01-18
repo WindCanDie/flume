@@ -32,6 +32,7 @@ import org.apache.flume.ChannelSelector;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.flume.FlumeException;
+import org.apache.flume.interceptor.AbstractInterceptor;
 import org.apache.flume.interceptor.Interceptor;
 import org.apache.flume.interceptor.InterceptorChain;
 import org.apache.flume.Transaction;
@@ -109,6 +110,7 @@ public class ChannelProcessor implements Configurable {
       }
       try {
         Interceptor.Builder builder = factory.newInstance(type);
+        interceptorContext.put(AbstractInterceptor.NAME_CONFG,interceptorName);
         builder.configure(interceptorContext);
         interceptors.add(builder.build());
       } catch (ClassNotFoundException e) {

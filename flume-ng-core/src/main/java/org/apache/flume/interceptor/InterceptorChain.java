@@ -49,6 +49,11 @@ public class InterceptorChain implements Interceptor {
         return null;
       }
       event = interceptor.intercept(event);
+      if (event != null){
+          ((AbstractInterceptor)interceptor).getInterceptorCounter().addToEventPassCount(1);
+      }else {
+          ((AbstractInterceptor)interceptor).getInterceptorCounter().addToEventFilterCount(1);
+      }
     }
     return event;
   }
@@ -59,9 +64,12 @@ public class InterceptorChain implements Interceptor {
       if (events.isEmpty()) {
         return events;
       }
+      long afterSize = events.size();
       events = interceptor.intercept(events);
       Preconditions.checkNotNull(events,
           "Event list returned null from interceptor %s", interceptor);
+      ((AbstractInterceptor)interceptor).getInterceptorCounter().addToEventPassCount(events.size());
+      ((AbstractInterceptor)interceptor).getInterceptorCounter().addToEventFilterCount(afterSize - events.size());
     }
     return events;
   }

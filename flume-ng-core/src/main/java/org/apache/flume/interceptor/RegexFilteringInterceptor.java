@@ -69,25 +69,26 @@ import com.google.common.collect.Lists;
  * </code>
  *
  */
-public class RegexFilteringInterceptor implements Interceptor {
+public class RegexFilteringInterceptor extends AbstractInterceptor {
 
   private static final Logger logger = LoggerFactory
       .getLogger(RegexFilteringInterceptor.class);
 
   private final Pattern regex;
   private final boolean excludeEvents;
-
+  private final String name;
   /**
    * Only {@link RegexFilteringInterceptor.Builder} can build me
    */
-  private RegexFilteringInterceptor(Pattern regex, boolean excludeEvents) {
+  private RegexFilteringInterceptor(Pattern regex, boolean excludeEvents,String name) {
     this.regex = regex;
     this.excludeEvents = excludeEvents;
+    this.name = name;
   }
 
   @Override
-  public void initialize() {
-    // no-op
+  public String getName() {
+    return name;
   }
 
 
@@ -133,10 +134,6 @@ public class RegexFilteringInterceptor implements Interceptor {
     return out;
   }
 
-  @Override
-  public void close() {
-    // no-op
-  }
 
   /**
    * Builder which builds new instance of the RegexFilteringInterceptor.
@@ -145,9 +142,10 @@ public class RegexFilteringInterceptor implements Interceptor {
 
     private Pattern regex;
     private boolean excludeEvents;
-
+    private String name;
     @Override
     public void configure(Context context) {
+      name = context.getString(AbstractInterceptor.NAME_CONFG);
       String regexString = context.getString(REGEX, DEFAULT_REGEX);
       regex = Pattern.compile(regexString);
       excludeEvents = context.getBoolean(EXCLUDE_EVENTS,
@@ -159,7 +157,7 @@ public class RegexFilteringInterceptor implements Interceptor {
       logger.info(String.format(
           "Creating RegexFilteringInterceptor: regex=%s,excludeEvents=%s",
           regex, excludeEvents));
-      return new RegexFilteringInterceptor(regex, excludeEvents);
+      return new RegexFilteringInterceptor(regex, excludeEvents,name);
     }
   }
 

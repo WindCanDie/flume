@@ -22,6 +22,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.slf4j.Logger;
@@ -60,109 +61,114 @@ import static org.apache.flume.interceptor.HostInterceptor.Constants.*;
  * </code>
  *
  */
-public class HostInterceptor implements Interceptor {
+public class HostInterceptor extends AbstractInterceptor {
 
-  private static final Logger logger = LoggerFactory
-          .getLogger(HostInterceptor.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(HostInterceptor.class);
 
-  private final boolean preserveExisting;
-  private final String header;
-  private String host = null;
+    private final boolean preserveExisting;
+    private final String header;
+    private String host = null;
+    private final String name;
 
-  /**
-   * Only {@link HostInterceptor.Builder} can build me
-   */
-  private HostInterceptor(boolean preserveExisting,
-      boolean useIP, String header) {
-    this.preserveExisting = preserveExisting;
-    this.header = header;
-    InetAddress addr;
-    try {
-      addr = InetAddress.getLocalHost();
-      if (useIP) {
-        host = addr.getHostAddress();
-      } else {
-        host = addr.getCanonicalHostName();
-      }
-    } catch (UnknownHostException e) {
-      logger.warn("Could not get local host address. Exception follows.", e);
-    }
+    /**
+     * Only {@link HostInterceptor.Builder} can build me
+     */
+    private HostInterceptor(boolean preserveExisting,
+                            boolean useIP, String header, String name) {
+        this.name = name;
+        this.preserveExisting = preserveExisting;
+        this.header = header;
+        InetAddress addr;
+        try {
+            addr = InetAddress.getLocalHost();
+            if (useIP) {
+                host = addr.getHostAddress();
+            } else {
+                host = addr.getCanonicalHostName();
+            }
+        } catch (UnknownHostException e) {
+            logger.warn("Could not get local host address. Exception follows.", e);
+        }
 
-  }
-
-  @Override
-  public void initialize() {
-    // no-op
-  }
-
-  /**
-   * Modifies events in-place.
-   */
-  @Override
-  public Event intercept(Event event) {
-    Map<String, String> headers = event.getHeaders();
-
-    if (preserveExisting && headers.containsKey(header)) {
-      return event;
-    }
-    if (host != null) {
-      headers.put(header, host);
-    }
-
-    return event;
-  }
-
-  /**
-   * Delegates to {@link #intercept(Event)} in a loop.
-   * @param events
-   * @return
-   */
-  @Override
-  public List<Event> intercept(List<Event> events) {
-    for (Event event : events) {
-      intercept(event);
-    }
-    return events;
-  }
-
-  @Override
-  public void close() {
-    // no-op
-  }
-
-  /**
-   * Builder which builds new instances of the HostInterceptor.
-   */
-  public static class Builder implements Interceptor.Builder {
-
-    private boolean preserveExisting = PRESERVE_DFLT;
-    private boolean useIP = USE_IP_DFLT;
-    private String header = HOST;
-
-    @Override
-    public Interceptor build() {
-      return new HostInterceptor(preserveExisting, useIP, header);
     }
 
     @Override
-    public void configure(Context context) {
-      preserveExisting = context.getBoolean(PRESERVE, PRESERVE_DFLT);
-      useIP = context.getBoolean(USE_IP, USE_IP_DFLT);
-      header = context.getString(HOST_HEADER, HOST);
+    public String getName() {
+        return name;
     }
 
-  }
+    @Override
+    public void initialize() {
+        super.initialize();
+    }
 
-  public static class Constants {
-    public static String HOST = "host";
+    /**
+     * Modifies events in-place.
+     */
+    @Override
+    public Event intercept(Event event) {
+        Map<String, String> headers = event.getHeaders();
 
-    public static String PRESERVE = "preserveExisting";
-    public static boolean PRESERVE_DFLT = false;
+        if (preserveExisting && headers.containsKey(header)) {
+            return event;
+        }
+        if (host != null) {
+            headers.put(header, host);
+        }
 
-    public static String USE_IP = "useIP";
-    public static boolean USE_IP_DFLT = true;
+        return event;
+    }
 
-    public static String HOST_HEADER = "hostHeader";
-  }
+    /**
+     * Delegates to {@link #intercept(Event)} in a loop.
+     *
+     * @param events
+     * @return
+     */
+    @Override
+    public List<Event> intercept(List<Event> events) {
+        for (Event event : events) {
+            intercept(event);
+        }
+        return events;
+    }
+
+    /**
+     * Builder which builds new instances of the HostInterceptor.
+     */
+    public static class Builder implements Interceptor.Builder {
+
+        private boolean preserveExisting = PRESERVE_DFLT;
+        private boolean useIP = USE_IP_DFLT;
+        private String header = HOST;
+        private String name = null;
+
+        @Override
+        public Interceptor build() {
+            return new HostInterceptor(preserveExisting, useIP, header, name);
+        }
+
+        @Override
+        public void configure(Context context) {
+            preserveExisting = context.getBoolean(PRESERVE, PRESERVE_DFLT);
+            useIP = context.getBoolean(USE_IP, USE_IP_DFLT);
+            header = context.getString(HOST_HEADER, HOST);
+            header = context.getString(AbstractInterceptor.NAME_CONFG, name);
+        }
+
+    }
+
+    public static class Constants {
+        public static String HOST = "host";
+
+        public static String PRESERVE = "preserveExisting";
+        public static boolean PRESERVE_DFLT = false;
+
+        public static String USE_IP = "useIP";
+        public static boolean USE_IP_DFLT = true;
+
+        public static String HOST_HEADER = "hostHeader";
+    }
 
 }

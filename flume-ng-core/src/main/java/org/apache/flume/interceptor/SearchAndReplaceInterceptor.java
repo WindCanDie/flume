@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
  * used with {@link java.util.regex.Matcher#replaceAll(String)} may be used,
  * including backtracking and grouping.
  */
-public class SearchAndReplaceInterceptor implements Interceptor {
+public class SearchAndReplaceInterceptor extends AbstractInterceptor{
 
   private static final Logger logger = LoggerFactory
       .getLogger(SearchAndReplaceInterceptor.class);
@@ -54,21 +54,20 @@ public class SearchAndReplaceInterceptor implements Interceptor {
   private final Pattern searchPattern;
   private final String replaceString;
   private final Charset charset;
+  private final String name;
 
   private SearchAndReplaceInterceptor(Pattern searchPattern,
                                       String replaceString,
-                                      Charset charset) {
+                                      Charset charset,String name) {
     this.searchPattern = searchPattern;
     this.replaceString = replaceString;
     this.charset = charset;
+    this.name = name;
   }
 
   @Override
-  public void initialize() {
-  }
-
-  @Override
-  public void close() {
+  public String getName() {
+    return name;
   }
 
   @Override
@@ -96,9 +95,10 @@ public class SearchAndReplaceInterceptor implements Interceptor {
     private Pattern searchRegex;
     private String replaceString;
     private Charset charset = Charsets.UTF_8;
-
+    private String name;
     @Override
     public void configure(Context context) {
+      name = context.getString(AbstractInterceptor.NAME_CONFG);
       String searchPattern = context.getString(SEARCH_PAT_KEY);
       Preconditions.checkArgument(!StringUtils.isEmpty(searchPattern),
           "Must supply a valid search pattern " + SEARCH_PAT_KEY +
@@ -125,7 +125,7 @@ public class SearchAndReplaceInterceptor implements Interceptor {
                                  "Regular expression search pattern required");
       Preconditions.checkNotNull(replaceString,
                                  "Replacement string required");
-      return new SearchAndReplaceInterceptor(searchRegex, replaceString, charset);
+      return new SearchAndReplaceInterceptor(searchRegex, replaceString, charset,name);
     }
   }
 }

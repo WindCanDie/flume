@@ -53,27 +53,29 @@ import org.slf4j.LoggerFactory;
  * </code>
  *
  */
-public class StaticInterceptor implements Interceptor {
+public class StaticInterceptor extends AbstractInterceptor{
 
   private static final Logger logger = LoggerFactory.getLogger(StaticInterceptor.class);
 
   private final boolean preserveExisting;
   private final String key;
   private final String value;
+  private final String name;
 
   /**
    * Only {@link HostInterceptor.Builder} can build me
    */
   private StaticInterceptor(boolean preserveExisting, String key,
-      String value) {
+      String value,String name) {
     this.preserveExisting = preserveExisting;
     this.key = key;
     this.value = value;
+    this.name = name;
   }
 
   @Override
-  public void initialize() {
-    // no-op
+  public String getName() {
+    return name;
   }
 
   /**
@@ -104,11 +106,6 @@ public class StaticInterceptor implements Interceptor {
     return events;
   }
 
-  @Override
-  public void close() {
-    // no-op
-  }
-
   /**
    * Builder which builds new instance of the StaticInterceptor.
    */
@@ -117,9 +114,11 @@ public class StaticInterceptor implements Interceptor {
     private boolean preserveExisting;
     private String key;
     private String value;
+    private String name;
 
     @Override
     public void configure(Context context) {
+      name = context.getString(AbstractInterceptor.NAME_CONFG);
       preserveExisting = context.getBoolean(Constants.PRESERVE, Constants.PRESERVE_DEFAULT);
       key = context.getString(Constants.KEY, Constants.KEY_DEFAULT);
       value = context.getString(Constants.VALUE, Constants.VALUE_DEFAULT);
@@ -130,7 +129,7 @@ public class StaticInterceptor implements Interceptor {
       logger.info(String.format(
           "Creating StaticInterceptor: preserveExisting=%s,key=%s,value=%s",
           preserveExisting, key, value));
-      return new StaticInterceptor(preserveExisting, key, value);
+      return new StaticInterceptor(preserveExisting, key, value, name);
     }
 
   }

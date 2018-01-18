@@ -27,15 +27,20 @@ import org.apache.flume.Event;
 /**
  * Simple interceptor that removes a header called "Bad-Words" from all events.
  */
-public class CensoringInterceptor implements Interceptor {
+public class CensoringInterceptor extends AbstractInterceptor{
 
   private CensoringInterceptor() {
     // no-op
   }
 
   @Override
+  public String getName() {
+    return null;
+  }
+
+  @Override
   public void initialize() {
-    // no-op
+    super.initialize();
   }
 
   @Override
@@ -57,7 +62,7 @@ public class CensoringInterceptor implements Interceptor {
 
   @Override
   public void close() {
-    // no-op
+    super.close();
   }
 
   public static class Builder implements Interceptor.Builder {
