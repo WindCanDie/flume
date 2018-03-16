@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.flume.Context;
 import org.apache.flume.instrumentation.MonitorService;
 import org.apache.flume.instrumentation.util.JMXPollUtil;
+import org.apache.flume.instrumentation.util.JVMDumpUtil;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.Request;
 import org.mortbay.jetty.Server;
@@ -53,7 +54,7 @@ public class HTTPMetricsServer implements MonitorService {
   private Server jettyServer;
   private int port;
   private static Logger LOG = LoggerFactory.getLogger(HTTPMetricsServer.class);
-  public static int DEFAULT_PORT = 41414;
+  static int DEFAULT_PORT = 41414;
   public static String CONFIG_PORT = "port";
 
   @Override
@@ -97,6 +98,7 @@ public class HTTPMetricsServer implements MonitorService {
 
     Type mapType = new TypeToken<Map<String, Map<String, String>>>() {}.getType();
     Type confType = new TypeToken< Map<String ,List< Map<String,Map<String,String>>>>>() {}.getType();
+    Type JVMType = new TypeToken< Map<String, Map<String, String>>>() {}.getType();
     Gson gson = new Gson();
 
     @Override
@@ -138,6 +140,15 @@ public class HTTPMetricsServer implements MonitorService {
         Object configuration =  JMXPollUtil.invoke("org.apache.flume.node:conf=handler",
                 "configuration",null,null);
         String json = gson.toJson(configuration,confType);
+        response.getWriter().write(json);
+        response.flushBuffer();
+        ((Request) request).setHandled(true);
+        return;
+      }else if (target.equalsIgnoreCase("/jvm")) {
+        response.setContentType("application/json;charset=utf-8");
+        response.setStatus(HttpServletResponse.SC_OK);
+        Map<String, Map<String, String>> jvmMeg =  JVMDumpUtil.getJVMDump();
+        String json = gson.toJson(jvmMeg,JVMType);
         response.getWriter().write(json);
         response.flushBuffer();
         ((Request) request).setHandled(true);
